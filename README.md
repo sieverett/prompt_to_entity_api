@@ -43,7 +43,7 @@ We now need to zip it up.
 Now add our FastAPI file and the JSON file.
 
 ```bash
-zip lambda_function.zip -u main.py
+zip lambda_function.zip -u main.py prompt_template_1.txt prompt_template_2.txt .env
 ```
 
 In the Lambda console upload the .zip file.

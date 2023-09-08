@@ -16,4 +16,8 @@ node_modules
 
 dist
 
-lib
+lib/
+
+.zip
+
+.env
