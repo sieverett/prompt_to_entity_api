@@ -1,23 +1,24 @@
-app/shap_e_model_cache/
-shap-e/
-app/__pycache__/
-app/model.obj
-app/tmp_mesh.obj
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
 
+# Virtual environments
 venv/
+.venv/
 
-render/.parcel-cache/
+# Environment variables
+.env
 
-ui/
+# IDE
+.idea/
+.vscode/
 
-node_modules
-
-.idea
-
-dist
-
+# Deployment artifacts
+*.zip
 lib/
 
-.zip
-
-.env
+# OS
+.DS_Store

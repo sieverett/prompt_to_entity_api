@@ -1,74 +1,105 @@
-# Prompt API overview
+# Prompt to Entity API
 
-Prompt API takes a written description of a crises situation within a JSON array and returns all key entities with their spacial location and relative sizes.  
+FastAPI service that extracts entities and locations from crisis text using OpenAI, deployed on AWS Lambda.
 
-Here's a basic descrition of the API set up.  For details on FastAPI go to FastAPI on github.
+![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
+![AWS Lambda](https://img.shields.io/badge/AWS_Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white)
 
-## Requirements
-- AWS account  
- - openai API key
+## About
 
+This service accepts a natural-language description of a crisis scene and returns structured JSON containing the entities present, their spatial positions, approximate scales, and colors. It uses a two-stage LangChain prompt pipeline: the first prompt expands the input into a richer scene description, and the second extracts entity data into a consistent JSON schema.
 
-## main.py
+## How It Works
 
-Replace the OPENAI_API_KEY with your key.
+1. A POST request sends a crisis description to the `/get-objects` endpoint.
+2. **Stage 1** -- The text is inserted into `prompt_template_1.txt`, which instructs the LLM to elaborate the scene with spatial and descriptive detail.
+3. **Stage 2** -- The elaborated text is inserted into `prompt_template_2.txt`, which instructs the LLM to extract entities into structured JSON with position, scale, and color fields.
+4. The structured JSON is returned in the response.
 
-## Deploying to AWS Lambda
+## API
 
-Set up an AWS Lambda function using Python 9 or above. 
+### `GET /`
 
-Note that FastAPI uses:
+Health check. Returns a welcome message.
 
-```python
-from mangum import Mangum
+### `POST /get-objects`
 
-app = FastAPI()
-handler = Mangum(app)
+Extract entities from a crisis description.
+
+**Request body:**
+
+```json
+{
+  "message": "there are two trees that have fallen in the river and a boat is capsized"
+}
 ```
 
-Modify AWS Lambda's event handler to `main.handler` in the Lambda's runtime settings. main.py will be the name of script.
+**Response:**
 
-Install dependencies into a local directory so we can zip it up and upload it to Lambda.
+```json
+{
+  "response": {
+    "assets": [
+      {
+        "title": "tree1",
+        "position": { "x": 1, "y": 3, "z": 0 },
+        "scale": { "length": 6, "width": 2, "height": 5 },
+        "color": "brown"
+      }
+    ]
+  }
+}
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.9+
+- An OpenAI API key
+
+### Local Development
+
+```bash
+# Clone the repository
+git clone <repo-url>
+cd prompt_to_entity_api
+
+# Create a virtual environment and install dependencies
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Set your OpenAI key
+echo "OPENAI_API_KEY=sk-..." > .env
+
+# Run the server
+uvicorn main:app --reload
+```
+
+The interactive API docs are available at `http://localhost:8000/docs`.
+
+### Deploying to AWS Lambda
+
+1. Install dependencies into a local directory:
 
 ```bash
 pip install -t lib -r requirements.txt
 ```
 
-We now need to zip it up.
+2. Package the deployment zip:
 
 ```bash
 (cd lib; zip ../lambda_function.zip -r .)
-```
-
-Now add our FastAPI file and the JSON file.
-
-```bash
 zip lambda_function.zip -u main.py prompt_template_1.txt prompt_template_2.txt .env
 ```
 
-In the Lambda console upload the .zip file.
-In the `configuration` tab, select `function url`. Select `NONE` for IAM permissions.
-In the advanced settings below, select `CORS` and save the changes. 
+3. Upload `lambda_function.zip` to your Lambda function.
+4. Set the handler to `main.handler` in the Lambda runtime settings.
+5. Under Configuration > Function URL, create a URL with auth type `NONE` and enable CORS.
 
-**Now we are ready to go!** 
+## License
 
-Click the `Function url` provided. 
-
-See FastAPI documentation by adding /docs to the url, for example:
-https://looz2lqanh2e35fgmjrbvo4yde0dywuu.lambda-url.us-west-2.on.aws/docs
-
-From your terminal use Curl for /get-objects:
-
-```
-curl -X 'POST'   'https://{complete url here}/get-objects'   -H 'accept: application/json'   -H 'Content-Type: application/json'   -d '{
-  "message": "there are two trees that have fallen in the river and a boat is capsized",
-  "prompt_id": "62e9559fd0b14f0386262ca1f7a852e6"
-}'
-```
-
-
-An example output should look like the following:
-```
-{"response":"{  \"assets\": [    {      \"title\": \"tree1\",      \"position\": \"{“x”: 1, “y”: 3, “z”: 0}\",      \"scale\":  \"{“length”: 6, “width”: 2, “height”: 5}\"      },    {      \"title\": \"tree2\",      \"position\": \"{“x”: 4, “y”: 4, “z”: 0}\",      \"scale\":  \"{“length”: 8, “width”: 3, “height”: 6}\"      },    {      \"title\": \"river\",      \"position\": \"{“x”: 0, “y”: 0, “z”: 0}\",      \"scale\":  \"{“length”: 10, “width”: 5, “height”: 0}\"      },    {      \"title\": \"boat\",      \"position"}
-```
-
+GPL-3.0. See [LICENSE](LICENSE) for details.
