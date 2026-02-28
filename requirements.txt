@@ -1,6 +1,5 @@
 fastapi
 uvicorn
 mangum
-langchain
+anthropic
 python-dotenv
-openai

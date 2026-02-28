@@ -1,15 +1,15 @@
 # Prompt to Entity API
 
-FastAPI service that extracts entities and locations from crisis text using OpenAI, deployed on AWS Lambda.
+FastAPI service that extracts entities and locations from crisis text using Anthropic's Claude, deployed on AWS Lambda.
 
 ![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)
+![Anthropic](https://img.shields.io/badge/Anthropic-Claude-191919?style=for-the-badge&logo=anthropic&logoColor=white)
 ![AWS Lambda](https://img.shields.io/badge/AWS_Lambda-FF9900?style=for-the-badge&logo=awslambda&logoColor=white)
 
 ## About
 
-This service accepts a natural-language description of a crisis scene and returns structured JSON containing the entities present, their spatial positions, approximate scales, and colors. It uses a two-stage LangChain prompt pipeline: the first prompt expands the input into a richer scene description, and the second extracts entity data into a consistent JSON schema.
+This service accepts a natural-language description of a crisis scene and returns structured JSON containing the entities present, their spatial positions, approximate scales, and colors. It uses a two-stage prompt pipeline: the first prompt expands the input into a richer scene description, and the second extracts entity data into a consistent JSON schema.
 
 ## How It Works
 
@@ -58,7 +58,7 @@ Extract entities from a crisis description.
 ### Prerequisites
 
 - Python 3.9+
-- An OpenAI API key
+- An Anthropic API key
 
 ### Local Development
 
@@ -72,8 +72,8 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
-# Set your OpenAI key
-echo "OPENAI_API_KEY=sk-..." > .env
+# Set your Anthropic key
+echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
 
 # Run the server
 uvicorn main:app --reload

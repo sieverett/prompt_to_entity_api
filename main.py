@@ -1,23 +1,33 @@
 import json
 import os
-from typing import Literal, Optional
+from typing import Optional
 from uuid import uuid4
 from fastapi import FastAPI, HTTPException
-import random
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from mangum import Mangum
-from langchain.llms import OpenAI
-from langchain.prompts import PromptTemplate
+from anthropic import Anthropic
 from dotenv import load_dotenv
 load_dotenv('.env')
 
+client = Anthropic()
 
-def complete_prompt_with_context(prompt,template):
-  with open(template, 'r') as f:
-    prompt_text=f.read() 
-  complete_prompt= prompt_text.replace('{context}',prompt)
-  return complete_prompt
+
+def complete_prompt_with_context(prompt, template):
+    with open(template, 'r') as f:
+        prompt_text = f.read()
+    complete_prompt = prompt_text.replace('{context}', prompt)
+    return complete_prompt
+
+
+def call_llm(user_message):
+    response = client.messages.create(
+        model="claude-sonnet-4-20250514",
+        max_tokens=4096,
+        messages=[
+            {"role": "user", "content": user_message}
+        ]
+    )
+    return response.content[0].text
 
 
 class Prompt(BaseModel):
@@ -37,10 +47,9 @@ async def root():
 async def parse_message(prompt: Prompt):
     prompt.prompt_id = uuid4().hex
     try:
-        llm = OpenAI(openai_api_key=os.getenv('OPENAI_API_KEY'), max_tokens = 2056)
-    except:
-        print('unable to authenticate with openai')
-    prompt2=llm.predict(complete_prompt_with_context(prompt.message,'prompt_template_1.txt'))
-    response=llm.predict(complete_prompt_with_context(prompt2,'prompt_template_2.txt'))
+        prompt2 = call_llm(complete_prompt_with_context(prompt.message, 'prompt_template_1.txt'))
+        response = call_llm(complete_prompt_with_context(prompt2, 'prompt_template_2.txt'))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM call failed: {e}")
 
-    return {"response":response}
+    return {"response": response}
